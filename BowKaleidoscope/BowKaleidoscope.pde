@@ -1,92 +1,73 @@
-// Hello Kitty Bow Kaleidoscope
-// Hot pink bow character, 8-fold symmetry, breathing + spinning motion
+// Flower Field Spinner
+// Concentric rings of spinning flower shapes — like an ASCII spinner but floral
 
-final int SEGS = 8;
-final color PINK = color(255, 105, 180);
 float t = 0;
 
+final int   PETALS = 6;
+final float F_R    = 17;   // flower radius (~34px across)
+final float RING_D = 52;   // distance between ring centers
+final int   RINGS  = 8;
+
 void setup() {
-  size(800, 800);
+  size(900, 900);
   smooth();
-  strokeJoin(ROUND);
-  strokeCap(ROUND);
-  frameRate(60);
+  noStroke();
 }
 
 void draw() {
   background(0);
   translate(width/2, height/2);
 
-  // Breathing: whole composition inhales and exhales
-  float breathe = 1.0 + 0.16 * sin(t * 1.5);
+  // Whole composition breathes in and out
+  float breathe = 1.0 + 0.09 * sin(t * 1.4);
   scale(breathe);
 
-  // Slow continuous spin
-  rotate(t * 0.22);
+  // Center flower, slightly larger
+  flower(0, 0, F_R * 1.5, t * 1.3);
 
-  // 8-fold kaleidoscope: mirror every other slice
-  for (int i = 0; i < SEGS; i++) {
+  for (int ring = 1; ring <= RINGS; ring++) {
+    float r     = ring * RING_D;
+    int   count = max(1, round(TWO_PI * r / (F_R * 2.3)));
+    float dir   = (ring % 2 == 0) ? 1.0 : -1.0;
+
+    // Each ring rotates, alternating direction; outer rings slightly faster
+    float ringRot = dir * t * (0.22 + ring * 0.03);
+
     pushMatrix();
-    rotate(TWO_PI * i / SEGS);
-    if (i % 2 == 1) scale(-1, 1);
-
-    // Three rings, each with a slight breathing phase offset for depth
-    for (int r = 0; r < 3; r++) {
-      float dist      = 72 + r * 128;
-      float sz        = map(r, 0, 2, 1.3, 0.44);
-      float ringPulse = 1.0 + 0.06 * sin(t * 1.5 + r * 0.9);
-
-      pushMatrix();
-      translate(dist, 0);
-      scale(sz * ringPulse);
-      drawBow();
-      popMatrix();
+    rotate(ringRot);
+    for (int j = 0; j < count; j++) {
+      float a = TWO_PI * j / count;
+      // Flowers spin on their own axis, opposite to ring direction
+      float selfSpin = a - dir * t * 2.2;
+      flower(cos(a) * r, sin(a) * r, F_R, selfSpin);
     }
-
     popMatrix();
   }
 
-  // Center ornament — glowing pink core
-  noStroke();
-  fill(255, 105, 180, 30);
-  ellipse(0, 0, 90, 90);
-  fill(255, 105, 180, 70);
-  ellipse(0, 0, 54, 54);
-  fill(PINK);
-  ellipse(0, 0, 28, 28);
-
-  t += 0.015;
+  t += 0.011;
 }
 
-// Single bow character: hot pink fill, black outline, soft pink halo
-void drawBow() {
-  // Soft pink glow behind the bow
-  noFill();
-  stroke(255, 105, 180, 45);
-  strokeWeight(18);
-  bowShape();
+void flower(float x, float y, float r, float spin) {
+  pushMatrix();
+  translate(x, y);
+  rotate(spin);
 
-  // Bow body
-  fill(PINK);
-  stroke(0);
-  strokeWeight(4);
-  bowShape();
-  ellipse(0, 0, 40, 40);
-}
+  // Soft pink halo so flowers glow against black
+  fill(255, 105, 180, 20);
+  ellipse(0, 0, r * 3.4, r * 3.4);
 
-// Two bezier wings + the function is reused for glow and fill passes
-void bowShape() {
-  // Left wing
-  beginShape();
-  vertex(-6, -13);
-  bezierVertex(-22, -82, -108, -82, -120, -3);
-  bezierVertex(-110, 55, -25, 82, -6, 13);
-  endShape(CLOSE);
+  // Petals
+  fill(255, 105, 180);
+  for (int p = 0; p < PETALS; p++) {
+    pushMatrix();
+    rotate(TWO_PI * p / PETALS);
+    ellipse(0, -r * 0.62, r * 0.5, r * 0.96);
+    popMatrix();
+  }
 
-  // Right wing
-  beginShape();
-  vertex(6, -13);
-  bezierVertex(22, -82, 108, -82, 120, -3);
-  bezierVertex(110, 55, 25, 82, 6, 13);
-  endShape(CLOSE);
+  // Bright center dot
+  fill(255, 218, 235);
+  ellipse(0, 0, r * 0.72, r * 0.72);
+
+  popMatrix();
 }
