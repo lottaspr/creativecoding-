@@ -1,73 +1,67 @@
-// Flower Field Spinner
-// Concentric rings of spinning flower shapes — like an ASCII spinner but floral
+// Flower Spiral — Fibonacci / sunflower arrangement
+// Color waves ripple outward along spiral arms as the whole thing rotates
 
 float t = 0;
 
-final int   PETALS = 6;
-final float F_R    = 17;   // flower radius (~34px across)
-final float RING_D = 52;   // distance between ring centers
-final int   RINGS  = 8;
+final int   N            = 380;
+final float GOLDEN_ANGLE = radians(137.508);
+final float SPREAD       = 13.5;
+final int   PETALS       = 6;
 
 void setup() {
   size(900, 900);
   smooth();
   noStroke();
+  colorMode(HSB, 360, 100, 100, 100);
 }
 
 void draw() {
-  background(0);
+  background(0, 0, 0);
   translate(width/2, height/2);
 
-  // Whole composition breathes in and out
-  float breathe = 1.0 + 0.09 * sin(t * 1.4);
+  float breathe = 1.0 + 0.08 * sin(t * 1.3);
   scale(breathe);
+  rotate(t * 0.18);
 
-  // Center flower, slightly larger
-  flower(0, 0, F_R * 1.5, t * 1.3);
+  for (int n = 0; n < N; n++) {
+    float baseAngle  = n * GOLDEN_ANGLE;
+    float baseRadius = SPREAD * sqrt(n);
 
-  for (int ring = 1; ring <= RINGS; ring++) {
-    float r     = ring * RING_D;
-    int   count = max(1, round(TWO_PI * r / (F_R * 2.3)));
-    float dir   = (ring % 2 == 0) ? 1.0 : -1.0;
+    // Ripple wave pulses outward along the spiral — main trippy effect
+    float ripple = sin(t * 2.5 + baseRadius * 0.055) * 16;
+    float radius  = baseRadius + ripple;
 
-    // Each ring rotates, alternating direction; outer rings slightly faster
-    float ringRot = dir * t * (0.22 + ring * 0.03);
+    float x = cos(baseAngle) * radius;
+    float y = sin(baseAngle) * radius;
+
+    float r   = map(n, 0, N, 5, 19);         // small at center, large at edge
+    float hue = (t * 45 + n * 0.9) % 360;   // rainbow crawls along arms over time
+    float sat = 72 + 22 * sin(n * 0.5 + t * 3.0);   // saturation ripple
+    float bri = 85 + 15 * sin(n * 0.7 + t * 2.3);   // brightness ripple
 
     pushMatrix();
-    rotate(ringRot);
-    for (int j = 0; j < count; j++) {
-      float a = TWO_PI * j / count;
-      // Flowers spin on their own axis, opposite to ring direction
-      float selfSpin = a - dir * t * 2.2;
-      flower(cos(a) * r, sin(a) * r, F_R, selfSpin);
+    translate(x, y);
+    rotate(t * 1.8 + n * 0.15);  // each flower spins on its own axis
+
+    // Glow halo
+    fill(hue, sat, bri, 18);
+    ellipse(0, 0, r * 3.6, r * 3.6);
+
+    // Petals
+    fill(hue, sat, bri);
+    for (int p = 0; p < PETALS; p++) {
+      pushMatrix();
+      rotate(TWO_PI * p / PETALS);
+      ellipse(0, -r * 0.62, r * 0.5, r * 0.96);
+      popMatrix();
     }
+
+    // Bright center
+    fill(hue, 28, 100);
+    ellipse(0, 0, r * 0.72, r * 0.72);
+
     popMatrix();
   }
 
   t += 0.011;
-}
-
-void flower(float x, float y, float r, float spin) {
-  pushMatrix();
-  translate(x, y);
-  rotate(spin);
-
-  // Soft pink halo so flowers glow against black
-  fill(255, 105, 180, 20);
-  ellipse(0, 0, r * 3.4, r * 3.4);
-
-  // Petals
-  fill(255, 105, 180);
-  for (int p = 0; p < PETALS; p++) {
-    pushMatrix();
-    rotate(TWO_PI * p / PETALS);
-    ellipse(0, -r * 0.62, r * 0.5, r * 0.96);
-    popMatrix();
-  }
-
-  // Bright center dot
-  fill(255, 218, 235);
-  ellipse(0, 0, r * 0.72, r * 0.72);
-
-  popMatrix();
 }
