@@ -13,7 +13,7 @@ void setup() {
   size(900, 900);
   smooth();
   noStroke();
-  colorMode(HSB, 360, 100, 100, 100);
+  colorMode(RGB, 255, 255, 255, 255);
 }
 
 void draw() {
@@ -39,35 +39,26 @@ void draw() {
       float py = sin(angle) * r +  cos(angle) * wiggle;
 
       float flowerR = map(s, 0, STEPS - 1, 4, 21);    // tiny at center, big at tip
-      float hue     = (t * 42 + arm * (360.0 / ARMS) + frac * 110) % 360;
-      float sat     = 75 + 22 * sin(t * 2.5 + frac * 6 + arm);
-      float bri     = 83 + 17 * sin(t * 2.0 + frac * 5);
-      float spin    = t * 2.1 + frac * 9;
+      float spin = t * 2.1 + frac * 9;
 
-      flower(px, py, flowerR, spin, hue, sat, bri);
+      flower(px, py, flowerR, spin);
     }
-  }
-
-  // Glowing center core
-  for (int i = 5; i >= 0; i--) {
-    fill((t * 60 + i * 18) % 360, 65, 100 - i * 7);
-    ellipse(0, 0, 14 + i * 9, 14 + i * 9);
   }
 
   t += 0.011;
 }
 
-void flower(float x, float y, float r, float spin, float h, float s, float b) {
+void flower(float x, float y, float r, float spin) {
   pushMatrix();
   translate(x, y);
   rotate(spin);
 
   // Glow halo
-  fill(h, s, b, 18);
+  fill(255, 182, 210, 18);
   ellipse(0, 0, r * 3.6, r * 3.6);
 
-  // Petals
-  fill(h, s, b);
+  // Petals — light pink
+  fill(255, 182, 210);
   for (int p = 0; p < PETALS; p++) {
     pushMatrix();
     rotate(TWO_PI * p / PETALS);
@@ -75,8 +66,8 @@ void flower(float x, float y, float r, float spin, float h, float s, float b) {
     popMatrix();
   }
 
-  // Bright center dot
-  fill(h, 25, 100);
+  // Center dot — slightly lighter
+  fill(255, 218, 235);
   ellipse(0, 0, r * 0.72, r * 0.72);
 
   popMatrix();
